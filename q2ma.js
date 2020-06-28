@@ -147,16 +147,16 @@ const pagedFind = async (filter, project = {}, option = {}, queryString, dateFie
  * @param {array} options.dateFields
  * @param {string} options.dateFormat
  * @param {string} options.matchPosition
- * @param {object | function} options.collectionName
+ * @param {object | function} options.collection
  */
-const q2ma = ({ filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition = "START", collectionName }) => {
+const q2ma = (collection, { filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition = "START" }) => {
 	try {
-		if (!collectionName) throw new Error({ code: "MISSING_PARAM", detail: { collectionName }, message: "collection name does not specify" })
+		if (!collection) throw new Error({ code: "MISSING_PARAM", detail: { collection }, message: "collection name does not specify" })
 		if (pipelines) {
 			const newPiplines = q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition })
-			return pagedAggregate(collectionName, newPiplines)
+			return pagedAggregate(collection, newPiplines)
 		} else {
-			return pagedFind(filter, project, options, queryString, dateFields, dateFormat, collectionName)
+			return pagedFind(filter, project, options, queryString, dateFields, dateFormat, collection)
 		}
 	} catch (error) {
 		throw new Error({ code: "EXCEPTION", detail: { pipelines }, message: "error on q2ma", innerException: error })
