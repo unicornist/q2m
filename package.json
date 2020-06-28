@@ -1,0 +1,31 @@
+{
+  "name": "q2ma",
+  "version": "0.7.0",
+  "main": "index.js",
+  "license": "Apache",
+  "author": {
+    "name": "Hossein Marzban",
+    "email": "marzban98@gmail.com"
+  },
+  "scripts": {
+    "test": "jest --coverage",
+    "test:badges": "npm run test & npx jest-coverage-badges",
+    "pretty": "npx prettier-standard --format --lint ./*.js"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "jest-coverage-badges": "^1.1.2",
+    "prettier-standard": "^16.3.0"
+  },
+  "dependencies": {
+    "bson": "^4.0.3",
+    "query-to-mongo": "^0.10.1"
+  },
+  "jest": {
+    "coverageReporters": [
+      "json-summary",
+      "text",
+      "lcov"
+    ]
+  }
+}
