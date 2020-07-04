@@ -82,8 +82,30 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
 	if (fields) facetPipLines.$facet.pagedResult.push({ $project: fields })
 
 	newPiplines = [...newPiplines, facetPipLines]
-
 	return newPiplines
+}
+
+const findQueryBuilder = ({ filter, project = {}, option = {}, queryString, dateFields, dateFormat }) => {
+	let {
+		criteria = {},
+		options: { fields = {}, sort = {}, skip = 0, limit = 20 },
+	} = q2m(queryString)
+
+	if (option.limit) limit = option.limit
+	if (option.skip) skip = option.skip
+
+	if (!option.sort) option.sort = {}
+	sort = Object.assign(sort, option.sort)
+
+	criteria = normalizeCriteria(criteria, { dateFields, dateFormat })
+	// priority of merge Object are with backend not querystring
+	criteria = Object.assign(criteria, filter)
+	project = Object.assign(project, fields)
+	option = Object.assign(option, { sort }, { skip }, { limit })
+
+	if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
+
+	return { criteria, projects: project, options: option }
 }
 
 /**
@@ -92,16 +114,14 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
  * @param {*} pagedPipelines
  */
 const pagedAggregate = async (collectionName, pagedPipelines) => {
-	try {
-		const result = await collectionName.aggregate(pagedPipelines)
-
-		if (!(result[0] && result[0].pagedResult) || !(result[0] && result[0].total.length && Object.prototype.hasOwnProperty.call(result[0].total[0], "sum")))
-			return { Total: 0, Result: [] }
-
-		return { Result: result[0].pagedResult, Total: result[0].total[0].sum }
-	} catch (error) {
+	const result = await collectionName.aggregate(pagedPipelines).catch(error => {
 		throw new Error({ code: "EXCEPTION", detail: { pagedPipelines }, message: "error on pagedAggregate", innerException: error })
-	}
+	})
+
+	if (!(result[0] && result[0].pagedResult) || !(result[0] && result[0].total.length && Object.prototype.hasOwnProperty.call(result[0].total[0], "sum")))
+		return { Total: 0, Result: [] }
+
+	return { Result: result[0].pagedResult, Total: result[0].total[0].sum }
 }
 
 /**
@@ -115,23 +135,10 @@ const pagedAggregate = async (collectionName, pagedPipelines) => {
  * @param {object | function} dbCollection
  */
 const pagedFind = async (filter, project = {}, option = {}, queryString, dateFields, dateFormat, dbCollection) => {
-	let {
-		criteria = {},
-		options: { fields = {}, sort = {}, skip = 0, limit = 20 },
-	} = q2m(queryString)
-
-	if (!option.sort) option.sort = {}
-	sort = Object.assign(sort, option.sort)
-
-	criteria = normalizeCriteria(criteria, { dateFields, dateFormat })
-	// priority of merge Object are with backend not querystring
-	criteria = Object.assign(criteria, filter)
-	project = Object.assign(project, fields)
-	option = Object.assign(option, { sort }, { skip }, { limit })
-
-	if (Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
-
-	const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, project, option).lean(), dbCollection.find(criteria).count()])
+	const { criteria, projects, options } = findQueryBuilder({ filter, project, option, queryString, dateFields, dateFormat })
+	const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, projects, options).lean(), dbCollection.find(criteria).count()]).catch(error => {
+		throw new Error({ code: "EXCEPTION", detail: { filter, project, option }, message: "error on pagedFind", innerException: error })
+	})
 
 	return { Result: pagedResult, Total: sum }
 }
@@ -149,7 +156,7 @@ const pagedFind = async (filter, project = {}, option = {}, queryString, dateFie
  * @param {string} options.matchPosition
  * @param {object | function} options.collection
  */
-const q2ma = (collection, { filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition = "START" }) => {
+const q2ma = (collection, { filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition = "START" } = {}) => {
 	try {
 		if (!collection) throw new Error({ code: "MISSING_PARAM", detail: { collection }, message: "collection name does not specify" })
 		if (pipelines) {
@@ -164,10 +171,12 @@ const q2ma = (collection, { filter, project, options, pipelines, queryString, da
 }
 
 module.exports = {
+	isEmpty,
 	dateConvert,
 	normalizeCriteria,
 	pagedAggregate,
 	q2mPipelines,
+	findQueryBuilder,
 	pagedFind,
 	q2ma,
 	q2m,
