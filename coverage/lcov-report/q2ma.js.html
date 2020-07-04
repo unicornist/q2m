@@ -240,10 +240,7 @@
 <a name='L181'></a><a href='#L181'>181</a>
 <a name='L182'></a><a href='#L182'>182</a>
 <a name='L183'></a><a href='#L183'>183</a>
-<a name='L184'></a><a href='#L184'>184</a>
-<a name='L185'></a><a href='#L185'>185</a>
-<a name='L186'></a><a href='#L186'>186</a>
-<a name='L187'></a><a href='#L187'>187</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
+<a name='L184'></a><a href='#L184'>184</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
@@ -359,7 +356,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -380,11 +376,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -502,7 +496,7 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
 	}
 &nbsp;
 	// Defualt sort base on _id with the -1, that's mean descending! :)
-  <span class="missing-if-branch" title="else path not taken" >E</span>if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
+	<span class="missing-if-branch" title="else path not taken" >E</span>if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
 &nbsp;
 	<span class="missing-if-branch" title="else path not taken" >E</span>if (sort) facetPipLines.$facet.pagedResult.push({ $sort: sort })
 &nbsp;
@@ -516,14 +510,14 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
 	return newPiplines
 }
 &nbsp;
-const findQueryBuilder = ({filter, project = {}, option = {}, queryString, dateFields, dateFormat}) =&gt; {
-  let {
+const findQueryBuilder = ({ filter, project = {}, option = {}, queryString, dateFields, dateFormat }) =&gt; {
+	let {
 		criteria = <span class="branch-0 cbranch-no" title="branch not covered" >{},</span>
 		options: { fields = {}, sort = {}, skip = 0, limit = 20 },
-  } = q2m(queryString)
-  
-  if(option.limit) limit = option.limit
-  if(option.skip) skip = option.skip
+	} = q2m(queryString)
+&nbsp;
+	if (option.limit) limit = option.limit
+	if (option.skip) skip = option.skip
 &nbsp;
 	if (!option.sort) option.sort = {}
 	sort = Object.assign(sort, option.sort)
@@ -534,9 +528,9 @@ const findQueryBuilder = ({filter, project = {}, option = {}, queryString, dateF
 	project = Object.assign(project, fields)
 	option = Object.assign(option, { sort }, { skip }, { limit })
 &nbsp;
-  if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
+	if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
 &nbsp;
-  return {criteria, projects: project, options: option}
+	return { criteria, projects: project, options: option }
 }
 &nbsp;
 /**
@@ -545,7 +539,6 @@ const findQueryBuilder = ({filter, project = {}, option = {}, queryString, dateF
  * @param {*} pagedPipelines
  */
 const pagedAggregate = async (collectionName, pagedPipelines) =&gt; {
-  
 	const result = await collectionName.aggregate(pagedPipelines).catch(<span class="fstat-no" title="function not covered" >er</span>ror =&gt; {
 <span class="cstat-no" title="statement not covered" >		throw new Error({ code: "EXCEPTION", detail: { pagedPipelines }, message: "error on pagedAggregate", innerException: error })</span>
 	})
@@ -554,7 +547,6 @@ const pagedAggregate = async (collectionName, pagedPipelines) =&gt; {
 		return { Total: 0, Result: [] }
 &nbsp;
 	return { Result: result[0].pagedResult, Total: result[0].total[0].sum }
-&nbsp;
 }
 &nbsp;
 /**
@@ -568,13 +560,12 @@ const pagedAggregate = async (collectionName, pagedPipelines) =&gt; {
  * @param {object | function} dbCollection
  */
 const pagedFind = async (filter, project = {}, option = {}, queryString, dateFields, dateFormat, dbCollection) =&gt; {
-  const {criteria, projects, options} = findQueryBuilder({filter, project , option , queryString, dateFields, dateFormat})
-  const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, projects, options).lean(), dbCollection.find(criteria).count()])
-    .catch(<span class="fstat-no" title="function not covered" >er</span>ror =&gt; {
-<span class="cstat-no" title="statement not covered" >      throw new Error({ code: "EXCEPTION", detail: { pagedPipelines }, message: "error on pagedFind", innerException: error })</span>
-    })
+	const { criteria, projects, options } = findQueryBuilder({ filter, project, option, queryString, dateFields, dateFormat })
+	const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, projects, options).lean(), dbCollection.find(criteria).count()]).catch(<span class="fstat-no" title="function not covered" >er</span>ror =&gt; {
+<span class="cstat-no" title="statement not covered" >		throw new Error({ code: "EXCEPTION", detail: { filter, project, option }, message: "error on pagedFind", innerException: error })</span>
+	})
 &nbsp;
-  return { Result: pagedResult, Total: sum }
+	return { Result: pagedResult, Total: sum }
 }
 &nbsp;
 /**
@@ -605,12 +596,12 @@ const q2ma = (collection, { filter, project, options, pipelines, queryString, da
 }
 &nbsp;
 module.exports = {
-  isEmpty,
+	isEmpty,
 	dateConvert,
 	normalizeCriteria,
 	pagedAggregate,
-  q2mPipelines,
-  findQueryBuilder,
+	q2mPipelines,
+	findQueryBuilder,
 	pagedFind,
 	q2ma,
 	q2m,
@@ -622,7 +613,7 @@ module.exports = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Sat Jul 04 2020 19:16:47 GMT+0430 (Iran Daylight Time)
+                at Sat Jul 04 2020 19:29:40 GMT+0430 (Iran Daylight Time)
             </div>
         </div>
         <script src="prettify.js"></script>

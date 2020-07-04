@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "test": "jest --coverage",
-    "test:badges": "npm run test & npx jest-coverage-badges",
+    "test:badges": "npm run test & npx --config jest.config.js jest-coverage-badges",
     "pretty": "npx prettier-standard --format --lint ./**/*.js"
   },
   "devDependencies": {
@@ -30,12 +30,5 @@
     "bson": "^4.0.3",
     "mongoose": "^5.9.21",
     "query-to-mongo": "^0.10.1"
-  },
-  "jest": {
-    "coverageReporters": [
-      "json-summary",
-      "text",
-      "lcov"
-    ]
   }
 }

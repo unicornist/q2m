@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1593874007653" clover="3.2.0">
-  <project timestamp="1593874007653" name="All files">
+<coverage generated="1593874617093" clover="3.2.0">
+  <project timestamp="1593874617093" name="All files">
     <metrics statements="61" coveredstatements="59" conditionals="80" coveredconditionals="75" methods="11" coveredmethods="9" elements="152" coveredelements="143" complexity="0" loc="61" ncloc="61" packages="1" files="1" classes="1"/>
     <file name="q2ma.js" path="C:\Users\Hossein\Desktop\q2ma\q2ma.js">
       <metrics statements="61" coveredstatements="59" conditionals="80" coveredconditionals="75" methods="11" coveredmethods="9"/>
@@ -46,25 +46,25 @@
       <line num="106" count="10" type="cond" truecount="2" falsecount="0"/>
       <line num="108" count="10" type="stmt"/>
       <line num="116" count="2" type="stmt"/>
-      <line num="118" count="4" type="stmt"/>
-      <line num="119" count="0" type="stmt"/>
-      <line num="122" count="4" type="cond" truecount="9" falsecount="0"/>
-      <line num="123" count="1" type="stmt"/>
-      <line num="125" count="3" type="stmt"/>
-      <line num="139" count="2" type="cond" truecount="2" falsecount="0"/>
-      <line num="140" count="8" type="stmt"/>
-      <line num="141" count="8" type="stmt"/>
-      <line num="143" count="0" type="stmt"/>
-      <line num="146" count="8" type="stmt"/>
-      <line num="162" count="2" type="cond" truecount="2" falsecount="0"/>
-      <line num="163" count="13" type="stmt"/>
-      <line num="164" count="13" type="cond" truecount="2" falsecount="0"/>
-      <line num="165" count="12" type="cond" truecount="2" falsecount="0"/>
-      <line num="166" count="4" type="stmt"/>
-      <line num="167" count="4" type="stmt"/>
-      <line num="169" count="8" type="stmt"/>
-      <line num="172" count="1" type="stmt"/>
-      <line num="176" count="2" type="stmt"/>
+      <line num="117" count="4" type="stmt"/>
+      <line num="118" count="0" type="stmt"/>
+      <line num="121" count="4" type="cond" truecount="9" falsecount="0"/>
+      <line num="122" count="1" type="stmt"/>
+      <line num="124" count="3" type="stmt"/>
+      <line num="137" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="138" count="8" type="stmt"/>
+      <line num="139" count="8" type="stmt"/>
+      <line num="140" count="0" type="stmt"/>
+      <line num="143" count="8" type="stmt"/>
+      <line num="159" count="2" type="cond" truecount="2" falsecount="0"/>
+      <line num="160" count="13" type="stmt"/>
+      <line num="161" count="13" type="cond" truecount="2" falsecount="0"/>
+      <line num="162" count="12" type="cond" truecount="2" falsecount="0"/>
+      <line num="163" count="4" type="stmt"/>
+      <line num="164" count="4" type="stmt"/>
+      <line num="166" count="8" type="stmt"/>
+      <line num="169" count="1" type="stmt"/>
+      <line num="173" count="2" type="stmt"/>
     </file>
   </project>
 </coverage>

@@ -1,4 +1,9 @@
 module.exports = {
 	testEnvironment: "node",
-	coveragePathIgnorePatterns: ["coverage", "datasources"],
+  coveragePathIgnorePatterns: ["coverage", "datasources"],
+  coverageReporters: [
+    "json-summary",
+    "text",
+    "lcov"
+  ]
 }
