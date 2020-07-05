@@ -1,6 +1,6 @@
 {
   "name": "q2ma",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "main": "index.js",
   "license": "Apache",
   "author": {
@@ -11,7 +11,7 @@
     {
       "name": "Babak Khorrami",
       "email": "k.babak@gmail.com",
-      "url": "github.com/unicornist"
+      "url": "https://github.com/unicornist"
     }
   ],
   "scripts": {
@@ -23,12 +23,13 @@
     "faker": "^4.1.0",
     "jest": "^25.1.0",
     "jest-coverage-badges": "^1.1.2",
+    "mongodb": "^3.5.9",
     "mongodb-memory-server": "^6.6.1",
+    "mongoose": "^5.9.21",
     "prettier-standard": "^16.3.0"
   },
   "dependencies": {
     "bson": "^4.0.3",
-    "mongoose": "^5.9.21",
     "query-to-mongo": "^0.10.1"
   }
 }

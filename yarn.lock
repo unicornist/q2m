@@ -3725,7 +3725,7 @@ mongodb-memory-server@^6.6.1:
   dependencies:
     mongodb-memory-server-core "6.6.1"
 
-mongodb@3.5.9, mongodb@^3.5.4:
+mongodb@3.5.9, mongodb@^3.5.4, mongodb@^3.5.9:
   version "3.5.9"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.5.9.tgz#799b72be8110b7e71a882bb7ce0d84d05429f772"
   integrity sha512-vXHBY1CsGYcEPoVWhwgxIBeWqP3dSu9RuRDsoLRPTITrcrgm1f0Ubu1xqF9ozMwv53agmEiZm0YGo+7WL3Nbug==

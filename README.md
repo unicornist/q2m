@@ -34,10 +34,41 @@ Mongodb auto Pagination
 ```bash
 $ npm i q2ma
 # or
-$ yarn q2ma
+$ yarn add q2ma
 ```
 
 ### Usage
+
+```js
+q2ma(collection, {options})
+
+```
+
+### `collection`
+collection name or model name
+
+### `options`
+Option is object of `{ filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition }`
+
+if you have mongodb piplines aggregation you can use these:
+
+`{pipelines, queryString, dateFields, dateFormat, matchPosition}`
+
+`pipelines` like the other piplines of mongodb aggregation
+
+`matchPosition` where do you want to add your custom piplines before queryString match or after. its enum of `START|END`
+
+if your query is simple and just need some kind of filter and projection like `find` or `findOne` you can use these combination
+
+`{filter, project, options, queryString, dateFields, dateFormat}`
+
+`filter, project, options `: are like input parameter to `find/findOne`
+
+`queryString`: like url string ex: `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10`
+
+`dateFormat`:
+
+`dateFields`:
 
 ```js
 const { q2ma } = require(q2ma);
@@ -54,6 +85,8 @@ const result = await q2ma(collectionName, {queryString});
  ]
 }
 */
+// what's happend in back!
+
 
 ```
 
