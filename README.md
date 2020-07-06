@@ -2,13 +2,13 @@
 
 <p align="center">
 
-<img src="./coverage/badge-lines.svg" alt="Coverage lines" data-canonical-src="./coverage/badge-lines.svg" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-lines.svg" alt="Coverage lines" style="max-width:100%;">
 
-<img src="./coverage/badge-functions.svg" alt="Coverage functions" data-canonical-src="./coverage/badge-functions.svg" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-functions.svg" alt="Coverage functions" style="max-width:100%;">
 
-<img src="./coverage/badge-branches.svg" alt="Coverage branches" data-canonical-src="./coverage/badge-branches.svg" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-branches.svg" alt="Coverage branches" style="max-width:100%;">
 
-<img src="./coverage/badge-statements.svg" alt="Coverage statements" data-canonical-src="./coverage/badge-statements.svg" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-statements.svg" alt="Coverage statements" style="max-width:100%;">
 
 </p>
 
