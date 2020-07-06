@@ -21,7 +21,8 @@ const createUser = () => {
 		profile: {
 			name: faker.name.firstName(),
 			lastName: faker.name.lastName(),
-			email: faker.internet.email(),
+      email: faker.internet.email(),
+      phone: faker.phone.phoneNumber(),
 			address: {
 				zipCode: faker.address.zipCode(),
 				city: faker.address.city(),
