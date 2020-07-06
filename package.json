@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "test": "jest --coverage",
-    "test:badges": "npm run test & npx --config jest.config.js jest-coverage-badges",
+    "test:badges": "npm run test --forceExit & npx --config jest.config.js jest-coverage-badges",
     "pretty": "npx prettier-standard --format --lint ./**/*.js",
     "postinstall": "node ./datasources/dump.js",
     "prepublish": "npm run pretty"
