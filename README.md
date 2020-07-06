@@ -34,7 +34,7 @@ If you need to execute a aggregation query and provide your own aggregation stag
 
 # ⛹️ Examples
 
-## Simple Paginated Query
+### Simple Paginated Query
 
 To run a simple paginated query on a collection (which is internally executed using `find`):
 
@@ -84,7 +84,7 @@ myModel.find(criteria, projects, options)
 myModel.find(criteria).count()
 ```
 
-## Paginated Aggregation Query
+### Paginated Aggregation Query
 
 To apply pagination on an aggregation query
 
