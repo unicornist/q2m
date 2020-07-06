@@ -148,31 +148,41 @@ $ yarn add q2ma
 q2ma(collection, {options})
 ```
 
-### `collection`
-mongo driver collection reference or mongoose model name
+| Parameter | Format | Description | Required |
+| --------- | ------ | ----------- | ------------- |
+| `collection` | Object | mongo driver collection reference or mongoose model name | ✔ |
+| `options` | Object | Options is an object like follow: `{ filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition }` | ❌ |
 
-### `options`
-Option is object of `{ filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition }`
 
-if you have mongodb pipelines aggregation you can use these:
+## `options`
+
+If you have mongodb pipelines aggregation you can use following combination:
 
 `{pipelines, queryString, dateFields, dateFormat, matchPosition}`
 
-`pipelines` like the other pipelines of mongodb aggregation
+| Parameter | Format | Description | Example | Default Value |
+| --------- | ------ | ----------- | ------- | ------------- |
+| `pipelines` | Array | --- | `[ { $unwind: 'profile.cards' } ]` | --- |
+| `queryString` | String | --- | `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10` | --- |
+| `dateFields` | String Array | --- | --- | `["createdAt", "modifiedAt", "updatedAt", "removedAt", "deletedAt", "verifiedAt", "confirmedAt", "timestamp"]` |
+| `dateFormat` | String | enum `NUMBER|DATE` | --- | `DATE` |
+| `matchPosition` | String | where do you want to add your custom pipelines before queryString match or after it. enum `START|END` | --- | `START` |
 
-`matchPosition` where do you want to add your custom pipelines before queryString match or after. its enum of `START|END`
 
-if your query is simple and just need some kind of filter and projection like `find` or `findOne` you can use these combination
+If your query is simple and then need some kind of filter and projection like `find` or `findOne` you can use following combination:
 
 `{filter, project, options, queryString, dateFields, dateFormat}`
 
-`filter, project, options `: are like input parameter to `find/findOne`
+| Parameter | Format | Description | Example |  Default Value |
+| --------- | ------ | ----------- | -------- | ------------- |
+| `filter` | Object | like input parameter to `find/findOne` |  `{name: "Ed", 'profile.card': xx-xxx-xxx}` | --- |
+| `project` | Object | like input parameter to `find/findOne` | `{profile: 1, name: 1, transaction: 1}` | ---  |
+| `options` | Object | like input parameter to `find/findOne` |  `{sort: {'profile.phone': -1}, skit: 10}`  | ---  |
+| `queryString` | String | like url string | `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10`  |  --- |
+| `dateFields` | String Array | --- | `['timeAt']`  | `["createdAt", "modifiedAt", "updatedAt", "removedAt", "deletedAt", "verifiedAt", "confirmedAt", "timestamp"]` |
+| `dateFormat` | String | enum `NUMBER|DATE` |  ---   | `DATE` |
 
-`queryString`: like url string ex: `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10`
-
-`dateFormat`:
-
-`dateFields`:
+NOTE: Sort default is based on _id.
 
 # 🤝 Contributing
 Contributions, issues, and feature requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
