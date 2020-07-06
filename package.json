@@ -1,13 +1,36 @@
 {
   "name": "q2ma",
   "version": "0.9.0",
+  "description": "Query string to mongodb paginated aggregation",
   "main": "index.js",
+  "keywords": [
+    "query string",
+    "mongodb",
+    "mongoose",
+    "pagination",
+    "paginated query",
+    "aggregation",
+    "aggregate",
+    "q2m",
+    "q2ma"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HMarzban/q2ma"
+  },
+  "bugs": {
+    "url": "https://github.com/HMarzban/q2ma/issues"
+  },
   "license": "Apache",
   "author": {
     "name": "Hossein Marzban",
     "email": "marzban98@gmail.com"
   },
   "contributors": [
+    {
+      "name": "Hossein Marzban",
+      "email": "marzban98@gmail.com"
+    },
     {
       "name": "Babak Khorrami",
       "email": "k.babak@gmail.com",
