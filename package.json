@@ -17,10 +17,18 @@
   "scripts": {
     "test": "jest --coverage",
     "test:badges": "npm run test & npx --config jest.config.js jest-coverage-badges",
-    "pretty": "npx prettier-standard --format --lint ./**/*.js"
+    "pretty": "npx prettier-standard --format --lint ./**/*.js",
+    "postinstall": "node ./datasources/dump.js",
+    "prepublish": "npm run pretty"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run pretty & npm run test:badges"
+    }
   },
   "devDependencies": {
     "faker": "^4.1.0",
+    "husky": "^4.2.5",
     "jest": "^25.1.0",
     "jest-coverage-badges": "^1.1.2",
     "mongodb": "^3.5.9",
