@@ -1,7 +1,7 @@
 const { dateConvert, normalizeCriteria, q2mPipelines, findQueryBuilder, isEmpty } = require("../q2ma")
 
 describe("Function: utils", () => {
-	it("the opbject is empty", () => {
+	it("the object is empty", () => {
 		const obj = {}
 		expect(isEmpty(obj)).toEqual(true)
 	})
@@ -160,7 +160,7 @@ describe("Function: normalizeCriteria", () => {
 })
 
 describe("Function: q2mPipelines", () => {
-	it("query string to mongodb aggregate piplines", () => {
+	it("query string to mongodb aggregate pipelines", () => {
 		const queryString = "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10"
 		const expected = [
 			{ $match: { name: "john", age: { $gt: 21 } } },

@@ -26,42 +26,43 @@ const dateConvert = (dateValue, dateFormat = "DATE") => {
  */
 function normalizeCriteria (obj, { dateFields = defaultDateFieldNames, dateFormat } = {}) {
 	for (const key in obj) {
-		// recursive fileds check
+		// recursive fields check
 		if (typeof obj[key] === "object") normalizeCriteria(obj[key], { dateFields, dateFormat })
 
-		// normilize Date format for custom Date fields
+		// normalize Date format for custom Date fields
 		if (dateFields.includes(key)) obj[key] = dateConvert(obj[key], dateFormat)
 
 		if (typeof obj[key] === "object" && dateFields.includes(key)) Object.keys(obj[key]).forEach(val => (obj[key][val] = dateConvert(obj[key][val], dateFormat)))
 
-		// convert _id preserve defualt id of mongodb to objectID
-		// this convert needed just for most mongodrivere exept mongoose ORM
+		// convert _id preserve default id of mongodb to objectID
+		// this convert needed just for most mongo driver except mongoose ORM
 		if (key.includes("_id") && typeof obj[key] !== "object") obj[key] = new bson.ObjectID(obj[key])
 	}
 	return obj
 }
 
 /**
- *
- * @param {object} pipelines      - predefined/custom mongodb aggregation pipelines
- * @param {string} queryString    - url query string
- * @param {string} dateFields     - @default defaultDateFieldNames
- * @param {string} dateFormat     - @enum ('DATE'|'NUMBER') - the data type of query string of element in mongodb
- * @param {string} matchPosition  - @enum ('START'|'END')   - append q2m filter before("START") or after("END") of custom pipelines
+ * @param {object} options
+ * @param {object} options.pipelines      - predefined/custom mongodb aggregation pipelines
+ * @param {string} options.queryString    - url query string
+ * @param {string} options.dateFields     - @default defaultDateFieldNames
+ * @param {string} options.dateFormat     - @enum ('DATE'|'NUMBER') - the data type of query string of element in mongodb
+ * @param {string} options.matchPosition  - @enum ('START'|'END')   - append q2m filter before("START") or after("END") of custom pipelines
+ * @returns {Array<Object>} mongodb pipelines aggregation
  */
 function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPosition = "START" }) {
-	let newPiplines = []
+	let newPipelines = []
 	let {
 		criteria: filter = {},
 		options: { fields, sort = {}, skip = 0, limit = 10 },
 	} = q2m(queryString)
 	filter = normalizeCriteria(filter, { dateFields, dateFormat })
 
-	if (matchPosition === "START" && !isEmpty(filter)) newPiplines.push({ $match: filter })
+	if (matchPosition === "START" && !isEmpty(filter)) newPipelines.push({ $match: filter })
 
-	if (pipelines) newPiplines = [...newPiplines, ...pipelines]
+	if (pipelines) newPipelines = [...newPipelines, ...pipelines]
 
-	if (matchPosition === "END" && !isEmpty(filter)) newPiplines.push({ $match: filter })
+	if (matchPosition === "END" && !isEmpty(filter)) newPipelines.push({ $match: filter })
 
 	const facetPipLines = {
 		$facet: {
@@ -70,7 +71,7 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
 		},
 	}
 
-	// Defualt sort base on _id with the -1, that's mean descending! :)
+	// Default sort base on _id with the -1, that's mean descending! :)
 	if (!Object.prototype.hasOwnProperty.call(sort, "_id")) Object.assign(sort, { _id: -1 })
 
 	if (sort) facetPipLines.$facet.pagedResult.push({ $sort: sort })
@@ -81,10 +82,21 @@ function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPo
 
 	if (fields) facetPipLines.$facet.pagedResult.push({ $project: fields })
 
-	newPiplines = [...newPiplines, facetPipLines]
-	return newPiplines
+	newPipelines = [...newPipelines, facetPipLines]
+	return newPipelines
 }
 
+/**
+ *
+ * @param {object} options
+ * @param {object} options.filter
+ * @param {object} options.project
+ * @param {object} options.option
+ * @param {String} options.queryString
+ * @param {(Array|String)} options.dateFields
+ * @param {String} options.dateFormat
+ * @returns {object} {criteria, projects, options}
+ */
 const findQueryBuilder = ({ filter, project = {}, option = {}, queryString, dateFields, dateFormat }) => {
 	let {
 		criteria = {},
@@ -110,8 +122,9 @@ const findQueryBuilder = ({ filter, project = {}, option = {}, queryString, date
 
 /**
  *
- * @param {*} collectionName
- * @param {*} pagedPipelines
+ * @param {object} collectionName
+ * @param {object} pagedPipelines
+ * @returns {Promise} {Result, Total}
  */
 const pagedAggregate = async (collectionName, pagedPipelines) => {
 	const result = await collectionName.aggregate(pagedPipelines).catch(error => {
@@ -132,7 +145,8 @@ const pagedAggregate = async (collectionName, pagedPipelines) => {
  * @param {string} queryString
  * @param {array} dateFields
  * @param {string} dateFormat
- * @param {object | function} dbCollection
+ * @param {(object|function)} dbCollection
+ * @returns {Promise} {Result, Total}
  */
 const pagedFind = async (filter, project = {}, option = {}, queryString, dateFields, dateFormat, dbCollection) => {
 	const { criteria, projects, options } = findQueryBuilder({ filter, project, option, queryString, dateFields, dateFormat })
@@ -145,6 +159,7 @@ const pagedFind = async (filter, project = {}, option = {}, queryString, dateFie
 
 /**
  *
+ * @param {object | function} collection
  * @param {object} options
  * @param {object} options.filter
  * @param {object} options.project
@@ -160,8 +175,8 @@ const q2ma = (collection, { filter, project, options, pipelines, queryString, da
 	try {
 		if (!collection) throw new Error({ code: "MISSING_PARAM", detail: { collection }, message: "collection name does not specify" })
 		if (pipelines) {
-			const newPiplines = q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition })
-			return pagedAggregate(collection, newPiplines)
+			const newPipelines = q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition })
+			return pagedAggregate(collection, newPipelines)
 		} else {
 			return pagedFind(filter, project, options, queryString, dateFields, dateFormat, collection)
 		}
