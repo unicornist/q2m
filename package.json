@@ -38,15 +38,14 @@
     }
   ],
   "scripts": {
-    "test": "jest --coverage",
+    "test": "node ./datasources/dump.js & jest --coverage",
     "test:badges": "npm run test --forceExit & npx --config jest.config.js jest-coverage-badges",
-    "pretty": "npx prettier-standard --format --lint ./**/*.js",
-    "postinstall": "node ./datasources/dump.js",
-    "prepublish": "npm run pretty"
+    "pretty": "npx prettier-standard --format --lint ./**/*.js"
   },
   "husky": {
     "hooks": {
-      "pre-push": "npm run pretty & npm run test:badges"
+      "pre-commit": "npm run pretty",
+      "pre-push": "npm run test:badges"
     }
   },
   "devDependencies": {
