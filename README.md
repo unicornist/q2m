@@ -34,7 +34,9 @@ If you need to execute a aggregation query and provide your own aggregation stag
 
 # ⛹️ Examples
 
-### Simple paginated query, executed using `find`:
+## Simple Paginated Query
+
+To run a simple paginated query on a collection (which is internally executed using `find`):
 
 ```js
 const { q2ma } = require(q2ma);
@@ -82,7 +84,9 @@ myModel.find(criteria, projects, options)
 myModel.find(criteria).count()
 ```
 
-### More advance paginated query based on custom aggregation stages, executed using `aggregate`:
+## Paginated Aggregation Query
+
+To apply pagination on an aggregation query
 
 ```js
 const { q2ma } = require(q2ma);
