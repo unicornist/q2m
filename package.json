@@ -1,6 +1,6 @@
 {
   "name": "q2ma",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "description": "Query string to mongodb paginated aggregation",
   "main": "index.js",
   "keywords": [
