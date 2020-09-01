@@ -26,6 +26,9 @@ const dateConvert = (dateValue, dateFormat = "DATE") => {
  */
 function normalizeCriteria (obj, { dateFields = defaultDateFieldNames, dateFormat } = {}) {
 	for (const key in obj) {
+
+    if (obj[key] === "null") obj[key] = null
+
 		// recursive fields check
 		if (typeof obj[key] === "object") normalizeCriteria(obj[key], { dateFields, dateFormat })
 
