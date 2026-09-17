@@ -1,28 +1,14 @@
 <h1 align="center">Query string to mongodb paginated aggregation</h1>
 
-<p align="center">
-
-<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-lines.svg" alt="Historical coverage lines" style="max-width:100%;">
-
-<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-functions.svg" alt="Historical coverage functions" style="max-width:100%;">
-
-<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-branches.svg" alt="Historical coverage branches" style="max-width:100%;">
-
-<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-statements.svg" alt="Historical coverage statements" style="max-width:100%;">
-
-</p>
+[![Tests](https://github.com/unicornist/q2m/actions/workflows/test.yml/badge.svg)](https://github.com/unicornist/q2m/actions/workflows/test.yml)
 
 <p align="center">
 
 <a href="https://opensource.org/licenses/Apache-2.0" rel="nofollow">
 <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License" style="max-width:100%;"></a>
 
-<a href="https://github.com/sheerun/prettier-standard" rel="nofollow">
-    <img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg">
-</a>
-
-<a href="https://github.com/sheerun/prettier-standard" rel="nofollow">
-<img src="https://img.shields.io/badge/code_style-standard-brightgreen.svg" alt="Standard - JavaScript Style Guide" style="max-width:100%;">
+<a href="https://prettier.io/" rel="nofollow">
+<img alt="code style: prettier" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg">
 </a>
 
 </p>
@@ -34,11 +20,26 @@ To provide aggregation stages other than pagination, pass the `pipelines` option
 
 ## Compatibility and test status
 
-This repository contains the historical `q2ma` 0.10.3 implementation. The npm package name is `q2ma`; the repository is [unicornist/q2m](https://github.com/unicornist/q2m).
+The npm package name is `q2ma`; the repository is [unicornist/q2m](https://github.com/unicornist/q2m). The maintenance changes on `master` have not yet been released to npm.
 
-The database examples use a connected Mongoose model. The `find` path calls `.lean()` and `.count()`, so a raw MongoDB driver collection is not a drop-in replacement. Compatibility with current Mongoose and MongoDB releases has not been verified.
+The database examples use a connected Mongoose model. CI exercises Mongoose 8.24.4 and 9.10.1 with MongoDB 8.2.6 on Node.js 22 and 24. A raw MongoDB driver collection is not a drop-in replacement: the find path uses `.lean()` and `.countDocuments()`.
 
-The coverage badges above are committed historical reports, not live CI results. The original test setup uses Jest 25, Mongoose 5, and `mongodb-memory-server` 6. Its MongoDB driver integration file is a placeholder; it does not establish driver compatibility. Running `npm test` also regenerates `datasources/dump.json` with random sample data and can download a MongoDB binary.
+The query parser and public return shape (`{ Result, Total }`) are unchanged. Find totals now use `countDocuments()` because Mongoose 8 removed `count()`. Unlike the old count method, it does not support `$where`, `$near`, or `$nearSphere`; use [MongoDB's documented alternatives](https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/#query-restrictions) for these operators. Aggregation filters created by `q2ma` use the model's ObjectId constructor so the BSON type matches its driver.
+
+### Development
+
+Use Node.js 22 or 24 and npm. `package-lock.json` is the dependency lockfile.
+
+```sh
+npm ci
+npm test
+npm run format:check
+npm audit
+```
+
+Tests start an isolated MongoDB process, seed fixed fixtures, and stop it afterward. The first run downloads MongoDB 8.2.6; no existing database or connection string is used. The suite checks filters, projections, sorting, pagination totals, grouping, match position, ObjectIds, dates, empty results, and errors. `npm run test:unit` runs the query-builder tests without starting MongoDB.
+
+The suite uses Node's native test runner; coverage is printed with the test results rather than committed as stale badges. Git hooks check formatting before commits and run the full suite before pushes.
 
 # ⛹️ Examples
 
@@ -76,7 +77,7 @@ const options = {
 Then `q2ma` will execute the following queries in parallel:
 ```js
 myModel.find(criteria, projects, options).lean()
-myModel.find(criteria).count()
+myModel.find(criteria).countDocuments()
 ```
 
 ### Paginated Aggregation Query
