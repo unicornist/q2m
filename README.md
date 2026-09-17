@@ -2,13 +2,13 @@
 
 <p align="center">
 
-<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-lines.svg" alt="Coverage lines" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-lines.svg" alt="Historical coverage lines" style="max-width:100%;">
 
-<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-functions.svg" alt="Coverage functions" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-functions.svg" alt="Historical coverage functions" style="max-width:100%;">
 
-<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-branches.svg" alt="Coverage branches" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-branches.svg" alt="Historical coverage branches" style="max-width:100%;">
 
-<img src="https://raw.githubusercontent.com/HMarzban/q2ma/master/coverage/badge-statements.svg" alt="Coverage statements" style="max-width:100%;">
+<img src="https://raw.githubusercontent.com/unicornist/q2m/master/coverage/badge-statements.svg" alt="Historical coverage statements" style="max-width:100%;">
 
 </p>
 
@@ -30,57 +30,52 @@
 # ✍️ Introduction
 The "query to mongo aggregate" (q2ma in short) is a tool to execute a mongodb paginated query (using find or aggregate) based on URI query parameters using [query-to-mongo](https://www.npmjs.com/package/query-to-mongo).
 
-If you need to execute a aggregation query and provide your own aggregation stages (other than pagination related stages) you can simply pass a `pipeline` option. Otherwise the paginated query is executed using `find`.
+To provide aggregation stages other than pagination, pass the `pipelines` option. Otherwise the paginated query uses `find`.
+
+## Compatibility and test status
+
+This repository contains the historical `q2ma` 0.10.3 implementation. The npm package name is `q2ma`; the repository is [unicornist/q2m](https://github.com/unicornist/q2m).
+
+The database examples use a connected Mongoose model. The `find` path calls `.lean()` and `.count()`, so a raw MongoDB driver collection is not a drop-in replacement. Compatibility with current Mongoose and MongoDB releases has not been verified.
+
+The coverage badges above are committed historical reports, not live CI results. The original test setup uses Jest 25, Mongoose 5, and `mongodb-memory-server` 6. Its MongoDB driver integration file is a placeholder; it does not establish driver compatibility. Running `npm test` also regenerates `datasources/dump.json` with random sample data and can download a MongoDB binary.
 
 # ⛹️ Examples
 
 ### Simple Paginated Query
 
-To run a simple paginated query on a collection (which is internally executed using `find`):
+To run a simple paginated query using a connected Mongoose model exported by `./model`:
 
 ```js
-const { q2ma } = require(q2ma);
+const { q2ma } = require("q2ma");
 const myModel = require("./model");
 const queryString = "name=john&age>21&fields=name,age&sort=name,-age&offset=0&limit=10";
 
-await q2ma(myModel, {queryString});
-
-/* 
-{
-  Result: [
-    {
-      "_id": "23fr42tv426gv"
-      "name": "john 1",
-      "age": 25
-    },
-    {
-      "_id": "ryb456ubn56un"
-      "name": "john 2",
-      "age": 24
-    }
-  ],
-  Total: 10
+async function main() {
+  const { Result, Total } = await q2ma(myModel, { queryString });
+  console.log(Result, Total); // Page of matching documents and total matching count.
 }
-*/
+
+main().catch(console.error);
 ```
-Using [query-to-mongo](https://www.npmjs.com/package/query-to-mongo) we produce the following from that `queryString`:
+Using [query-to-mongo](https://www.npmjs.com/package/query-to-mongo), `q2ma` builds these arguments from that `queryString`:
 ```js
 const criteria = {
   name: 'john',
   age: { $gt: 21 }
 }
-const fields = {
-  name: true, age: true
+const projects = {
+  name: 1, age: 1
 }
 const options = {
-  sort: { name: 1, age: -1 },
-  offset: 10,
+  sort: { name: 1, age: -1, _id: -1 },
+  skip: 0,
   limit: 10
 }
 ```
 Then `q2ma` will execute the following queries in parallel:
 ```js
-myModel.find(criteria, projects, options)
+myModel.find(criteria, projects, options).lean()
 myModel.find(criteria).count()
 ```
 
@@ -89,45 +84,34 @@ myModel.find(criteria).count()
 To apply pagination on an aggregation query
 
 ```js
-const { q2ma } = require(q2ma);
+const { q2ma } = require("q2ma");
 const myModel = require("./model");
 const queryString = "age>21&fields=_id,names&sort=_id&offset=0&limit=10";
 const pipelines = [
   { $group: {
-    _id: "age",
+    _id: "$age",
     names: { $push: "$name" }
   } }
 ];
 
-await q2ma(myModel, {queryString, pipelines});
-
-/* 
-{
-  Result: [
-    {
-      "age": 24,
-      "names": ["john 1"]
-    },
-    {
-      "age": 25,
-      "names": ["john 2", "susie"]
-    }
-  ],
-  Total: 10
+async function main() {
+  const { Result, Total } = await q2ma(myModel, { queryString, pipelines });
+  console.log(Result, Total); // Page of age groups and total number of groups.
 }
-*/
+
+main().catch(console.error);
 ```
 Then `q2ma` produces and executes the following aggregation query using that `queryString` and `pipelines`:
 ```js
 myModel.aggregate([
   { $match: { age: { $gt: 21 } } },
   { $group: {
-    _id: "age",
+    _id: "$age",
     names: { $push: "$name" }
   } },
   { $facet: {
       total: [{ $group: { _id: "total", sum: { $sum: 1 } } }],
-      pagedResult: [{ $sort: { name: 1, age: -1, _id: -1 } }, { $skip: 0 }, { $limit: 10 }, { $project: { _id: 1, names: 1 } }],
+      pagedResult: [{ $sort: { _id: 1 } }, { $limit: 10 }, { $project: { _id: 1, names: 1 } }],
   } }
 ]);
 ```
@@ -145,12 +129,12 @@ $ yarn add q2ma
 # 📖 Documentation
 
 ```js
-q2ma(collection, {options})
+q2ma(collection, options)
 ```
 
 | Parameter | Format | Description | Required |
 | --------- | ------ | ----------- | ------------- |
-| `collection` | Object | mongo driver collection reference or mongoose model name | ✔ |
+| `collection` | Object or Function | Connected Mongoose model; see compatibility notes above | ✔ |
 | `options` | Object | Options is an object like follow: `{ filter, project, options, pipelines, queryString, dateFields, dateFormat, matchPosition }` | ❌ |
 
 
@@ -162,7 +146,7 @@ If you have mongodb pipelines aggregation you can use following combination:
 
 | Parameter | Format | Description | Example | Default Value |
 | --------- | ------ | ----------- | ------- | ------------- |
-| `pipelines` | Array | --- | `[ { $unwind: 'profile.cards' } ]` | --- |
+| `pipelines` | Array | Custom aggregation stages | `[ { $unwind: '$profile.cards' } ]` | --- |
 | `queryString` | String | --- | `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10` | --- |
 | `dateFields` | String Array | --- | --- | `["createdAt", "modifiedAt", "updatedAt", "removedAt", "deletedAt", "verifiedAt", "confirmedAt", "timestamp"]` |
 | `dateFormat` | String | enum `NUMBER|DATE` | --- | `DATE` |
@@ -175,9 +159,9 @@ If your query is simple and then need some kind of filter and projection like `f
 
 | Parameter | Format | Description | Example |  Default Value |
 | --------- | ------ | ----------- | -------- | ------------- |
-| `filter` | Object | like input parameter to `find/findOne` |  `{name: "Ed", 'profile.card': xx-xxx-xxx}` | --- |
+| `filter` | Object | like input parameter to `find` |  `{name: "Ed", 'profile.card': 'card-id'}` | --- |
 | `project` | Object | like input parameter to `find/findOne` | `{profile: 1, name: 1, transaction: 1}` | ---  |
-| `options` | Object | like input parameter to `find/findOne` |  `{sort: {'profile.phone': -1}, skit: 10}`  | ---  |
+| `options` | Object | like input parameter to `find` |  `{sort: {'profile.phone': -1}, skip: 10}`  | ---  |
 | `queryString` | String | like url string | `name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10`  |  --- |
 | `dateFields` | String Array | --- | `['timeAt']`  | `["createdAt", "modifiedAt", "updatedAt", "removedAt", "deletedAt", "verifiedAt", "confirmedAt", "timestamp"]` |
 | `dateFormat` | String | enum `NUMBER|DATE` |  ---   | `DATE` |
@@ -185,6 +169,8 @@ If your query is simple and then need some kind of filter and projection like `f
 NOTE: Sort default is based on _id.
 
 # 🤝 Contributing
+Created by Hossein Marzban, with contributions from Babak Khorrami. See [package.json](package.json) for author and contributor details.
+
 Contributions, issues, and feature requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 > Note: Please make sure to update tests as appropriate.
