@@ -24,22 +24,22 @@ const dateConvert = (dateValue, dateFormat = "DATE") => {
  * @param {Array} options.dateFields
  * @param {string} options.dateFormat
  */
-function normalizeCriteria (obj, { dateFields = defaultDateFieldNames, dateFormat } = {}) {
+function normalizeCriteria(obj, { dateFields = defaultDateFieldNames, dateFormat } = {}, ObjectId = bson.ObjectID) {
 	for (const key in obj) {
-
-    if (obj[key] === "null") obj[key] = null
+		if (obj[key] === "null") obj[key] = null
 
 		// recursive fields check
-		if (typeof obj[key] === "object") normalizeCriteria(obj[key], { dateFields, dateFormat })
+		if (obj[key] !== null && typeof obj[key] === "object") normalizeCriteria(obj[key], { dateFields, dateFormat }, ObjectId)
 
 		// normalize Date format for custom Date fields
 		if (dateFields.includes(key)) obj[key] = dateConvert(obj[key], dateFormat)
 
-		if (typeof obj[key] === "object" && dateFields.includes(key)) Object.keys(obj[key]).forEach(val => (obj[key][val] = dateConvert(obj[key][val], dateFormat)))
+		if (obj[key] !== null && typeof obj[key] === "object" && dateFields.includes(key))
+			Object.keys(obj[key]).forEach(val => (obj[key][val] = dateConvert(obj[key][val], dateFormat)))
 
 		// convert _id preserve default id of mongodb to objectID
 		// this convert needed just for most mongo driver except mongoose ORM
-		if (key.includes("_id") && typeof obj[key] !== "object") obj[key] = new bson.ObjectID(obj[key])
+		if (key.includes("_id") && typeof obj[key] !== "object") obj[key] = new ObjectId(obj[key])
 	}
 	return obj
 }
@@ -53,13 +53,13 @@ function normalizeCriteria (obj, { dateFields = defaultDateFieldNames, dateForma
  * @param {string} options.matchPosition  - @enum ('START'|'END')   - append q2m filter before("START") or after("END") of custom pipelines
  * @returns {Array<Object>} mongodb pipelines aggregation
  */
-function q2mPipelines ({ pipelines, queryString, dateFields, dateFormat, matchPosition = "START" }) {
+function q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition = "START" }, ObjectId) {
 	let newPipelines = []
 	let {
 		criteria: filter = {},
 		options: { fields, sort = {}, skip = 0, limit = 10 },
 	} = q2m(queryString)
-	filter = normalizeCriteria(filter, { dateFields, dateFormat })
+	filter = normalizeCriteria(filter, { dateFields, dateFormat }, ObjectId)
 
 	if (matchPosition === "START" && !isEmpty(filter)) newPipelines.push({ $match: filter })
 
@@ -153,7 +153,7 @@ const pagedAggregate = async (collectionName, pagedPipelines) => {
  */
 const pagedFind = async (filter, project = {}, option = {}, queryString, dateFields, dateFormat, dbCollection) => {
 	const { criteria, projects, options } = findQueryBuilder({ filter, project, option, queryString, dateFields, dateFormat })
-	const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, projects, options).lean(), dbCollection.find(criteria).count()]).catch(error => {
+	const [pagedResult, sum] = await Promise.all([dbCollection.find(criteria, projects, options).lean(), dbCollection.find(criteria).countDocuments()]).catch(error => {
 		throw new Error({ code: "EXCEPTION", detail: { filter, project, option }, message: "error on pagedFind", innerException: error })
 	})
 
@@ -178,7 +178,10 @@ const q2ma = (collection, { filter, project, options, pipelines, queryString, da
 	try {
 		if (!collection) throw new Error({ code: "MISSING_PARAM", detail: { collection }, message: "collection name does not specify" })
 		if (pipelines) {
-			const newPipelines = q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition })
+			// Mongoose does not cast aggregation pipelines. Use the model's BSON version
+			// so its driver can serialize ObjectIds across Mongoose releases.
+			const ObjectId = collection.base && collection.base.Types && collection.base.Types.ObjectId
+			const newPipelines = q2mPipelines({ pipelines, queryString, dateFields, dateFormat, matchPosition }, ObjectId)
 			return pagedAggregate(collection, newPipelines)
 		} else {
 			return pagedFind(filter, project, options, queryString, dateFields, dateFormat, collection)

@@ -1,6 +1,8 @@
 const mongoose = require("mongoose")
 
 const userSchema = new mongoose.Schema({
+	age: Number,
+	createdAt: Date,
 	profile: {
 		name: String,
 		lastName: String,

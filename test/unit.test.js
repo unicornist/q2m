@@ -1,168 +1,68 @@
+const { describe, it } = require("node:test")
+const assert = require("node:assert/strict")
+const { ObjectID } = require("bson")
 const { dateConvert, normalizeCriteria, q2mPipelines, findQueryBuilder, isEmpty } = require("../q2ma")
 
-describe("Function: utils", () => {
-	it("the object is empty", () => {
-		const obj = {}
-		expect(isEmpty(obj)).toEqual(true)
-	})
-	it("the object is not empty", () => {
-		const obj = { name: "Bob" }
-		expect(isEmpty(obj)).toEqual(false)
-	})
-	it("the input is not object", () => {
-		const fn = function () {}
-		const date = new Date()
-		expect(isEmpty(fn)).toEqual(false)
-		expect(isEmpty(date)).toEqual(false)
-	})
-})
-
-describe("Function: dateConvert", () => {
-	it("Input as string Date must convert to full Date", () => {
-		const input = "2020/10/20"
-		const result = dateConvert(input, "DATE")
-		expect(result).toEqual(new Date(input))
-	})
-	it("Input as number Date  must return original input", () => {
-		const input = 1593330164836
-		const result = dateConvert(input, "NUMBER")
-		expect(result).toEqual(input)
-	})
-	it("Input as a string Date  must convert to full Date", () => {
-		const input = "2020/10/20"
-		const result = dateConvert(input)
-		expect(result).toEqual(new Date(input))
-	})
-	it("Input as object must return the original input", () => {
-		const input = { createdAt: "2020/10/20" }
-		const result = dateConvert(input)
-		expect(result).toEqual(input)
-	})
-})
-
-describe("Function: normalizeCriteria", () => {
-	it("Convert _id to ObjectId", () => {
-		const input = {
-			_id: "5e4d0c3586eb0cf4406fe5b1",
-		}
-		const result = normalizeCriteria(input)
-		expect(typeof result._id).toBe("object")
-	})
-
-	it("Convert property path which contain _id to ObjectId", () => {
-		const input = {
-			"profile._id": "5e4d0c3586eb0cf4406fe5b1",
-		}
-		const result = normalizeCriteria(input)
-		expect(typeof result["profile._id"]).toBe("object")
-	})
-
-	it("Convert _id in object to ObjectId", () => {
-		const input = {
-			cards: {
-				_id: "5e4d0c3586eb0cf4406fe5b1",
-			},
-		}
-		const result = normalizeCriteria(input)
-		expect(typeof result.cards._id).toBe("object")
-	})
-
-	it("Convert Object contains _ids to ObjectId", () => {
-		const input = {
-			_id: "5e4d0c3586eb0cf4406fe5b1",
-			"profile._id": "5e4d0c3586eb0cf4406fe5b1",
-			cards: {
-				_id: "5e4d0c3586eb0cf4406fe5b1",
-			},
-		}
-		const result = normalizeCriteria(input)
-		expect(result).toEqual(
-			expect.objectContaining({
-				_id: expect.any(Object),
-				"profile._id": expect.any(Object),
-				cards: {
-					_id: expect.any(Object),
-				},
-			}),
+describe("isEmpty", () => {
+	it("identifies an empty plain object", () => assert.equal(isEmpty({}), true))
+	it("rejects non-empty objects", () => assert.equal(isEmpty({ name: "Bob" }), false))
+	it("rejects functions and dates", () => {
+		assert.equal(
+			isEmpty(() => {}),
+			false,
 		)
-	})
-
-	it("Normalize nested Object with Date fields to Date field", () => {
-		const input = {
-			profile: {
-				createdAt: "2040-01-17",
-				data: {
-					createdAt: "2010-01-17",
-				},
-			},
-			createdAt: {
-				$gte: "2020-02-17",
-				$lte: "2010-02-17",
-			},
-		}
-		const result = normalizeCriteria(input)
-		expect(result.profile.createdAt instanceof Date).toBeTruthy()
-		expect(result.profile.data.createdAt instanceof Date).toBeTruthy()
-		expect(result.createdAt.$gte instanceof Date).toBeTruthy()
-		expect(result.createdAt.$lte instanceof Date).toBeTruthy()
-	})
-
-	it("Normalize Date type to Date field", () => {
-		const input = {
-			confirmedAt: 1593330164836,
-			"profile.createdAt": "2020-01-01",
-		}
-		const result = normalizeCriteria(input)
-		expect(result.confirmedAt instanceof Date).toBeTruthy()
-		expect(result["profile.createdAt"] instanceof Date).toBeFalsy()
-	})
-
-	it("Normalize full mongodb object filter", () => {
-		const input = {
-			name: "john",
-			confirmedAt: "2020-10-20",
-			"profile.createdAt": "2020/01/03",
-			age: { $gt: 21 },
-			profile: {
-				createdAt: "2030-01-10",
-				data: {
-					createdAt: "2030-03-20",
-				},
-			},
-			_id: "5e4d0c3586eb0cf4406fe5b1",
-			"profile._id": "5e4d0c3586eb0cf4406fe5b1",
-			createdAt: {
-				$gte: "2020-01-01",
-				$lte: "2010/02/02",
-			},
-		}
-		const result = normalizeCriteria(input)
-		expect(result).toEqual(
-			expect.objectContaining({
-				name: expect.any(String),
-				confirmedAt: expect.any(Object),
-				age: { $gt: expect.any(Number) },
-				profile: {
-					createdAt: expect.any(Object),
-					data: {
-						createdAt: expect.any(Object),
-					},
-				},
-				_id: expect.any(Object),
-				"profile._id": expect.any(Object),
-				createdAt: {
-					$gte: expect.any(Object),
-					$lte: expect.any(Object),
-				},
-			}),
-		)
+		assert.equal(isEmpty(new Date()), false)
 	})
 })
 
-describe("Function: q2mPipelines", () => {
-	it("query string to mongodb aggregate pipelines", () => {
-		const queryString = "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10"
-		const expected = [
+describe("dateConvert", () => {
+	it("converts an ISO string to a date", () => assert.deepEqual(dateConvert("2020-10-20", "DATE"), new Date("2020-10-20")))
+	it("keeps numeric timestamps in NUMBER mode", () => assert.equal(dateConvert(1593330164836, "NUMBER"), 1593330164836))
+	it("defaults to DATE mode", () => assert.deepEqual(dateConvert("2020-10-20"), new Date("2020-10-20")))
+	it("keeps an existing object", () => {
+		const input = { createdAt: "2020-10-20" }
+		assert.equal(dateConvert(input), input)
+	})
+})
+
+describe("normalizeCriteria", () => {
+	it("converts an id with the existing public BSON type", () => {
+		const result = normalizeCriteria({ _id: "5e4d0c3586eb0cf4406fe5b1" })
+		assert.ok(result._id instanceof ObjectID)
+		assert.equal(result._id.toHexString(), "5e4d0c3586eb0cf4406fe5b1")
+	})
+	it("converts an id in a dotted path", () => {
+		const result = normalizeCriteria({ "profile._id": "5e4d0c3586eb0cf4406fe5b1" })
+		assert.equal(result["profile._id"].toHexString(), "5e4d0c3586eb0cf4406fe5b1")
+	})
+	it("converts nested ids", () => {
+		const result = normalizeCriteria({ cards: { _id: "5e4d0c3586eb0cf4406fe5b1" } })
+		assert.equal(result.cards._id.toHexString(), "5e4d0c3586eb0cf4406fe5b1")
+	})
+	it("normalizes nested dates and comparison operators", () => {
+		const result = normalizeCriteria({ profile: { createdAt: "2040-01-17", data: { createdAt: "2010-01-17" } }, createdAt: { $gte: "2020-02-17", $lte: "2021-02-17" } })
+		assert.deepEqual(result, {
+			profile: { createdAt: new Date("2040-01-17"), data: { createdAt: new Date("2010-01-17") } },
+			createdAt: { $gte: new Date("2020-02-17"), $lte: new Date("2021-02-17") },
+		})
+	})
+	it("leaves dotted date fields alone unless explicitly named", () => {
+		const result = normalizeCriteria({ confirmedAt: 1593330164836, "profile.createdAt": "2020-01-01" })
+		assert.deepEqual(result, { confirmedAt: new Date(1593330164836), "profile.createdAt": "2020-01-01" })
+	})
+	it("uses custom date fields and numeric dates", () => {
+		const result = normalizeCriteria({ "profile.createdAt": "2020-01-01", createdAt: "2020-01-01" }, { dateFields: ["profile.createdAt"], dateFormat: "NUMBER" })
+		assert.deepEqual(result, { "profile.createdAt": Date.parse("2020-01-01"), createdAt: "2020-01-01" })
+	})
+	it("preserves nulls, including date fields", () => {
+		assert.deepEqual(normalizeCriteria({ name: "null", createdAt: "null", deletedAt: null }), { name: null, createdAt: null, deletedAt: null })
+	})
+})
+
+describe("q2mPipelines", () => {
+	it("builds the exact filter and pagination facet", () => {
+		const result = q2mPipelines({ queryString: "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10" })
+		assert.deepEqual(result, [
 			{ $match: { name: "john", age: { $gt: 21 } } },
 			{
 				$facet: {
@@ -170,41 +70,33 @@ describe("Function: q2mPipelines", () => {
 					pagedResult: [{ $sort: { name: 1, age: -1, _id: -1 } }, { $skip: 10 }, { $limit: 10 }, { $project: { name: 1, age: 1 } }],
 				},
 			},
-		]
-		const result = q2mPipelines({ queryString })
-		expect(result).toEqual(expect.arrayContaining(expected))
+		])
+	})
+	it("keeps the public helper's existing ObjectId behavior", () => {
+		const result = q2mPipelines({ queryString: "_id=5e4d0c3586eb0cf4406fe5b1" })
+		assert.ok(result[0].$match._id instanceof ObjectID)
 	})
 })
 
-describe("Function: findQueryBuilder", () => {
-	it("query string to mongodb find parameters", () => {
-		const queryString = "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10"
-		const expected = {
+describe("findQueryBuilder", () => {
+	it("builds the exact find arguments", () => {
+		assert.deepEqual(findQueryBuilder({ queryString: "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10" }), {
 			criteria: { name: "john", age: { $gt: 21 } },
 			projects: { name: 1, age: 1 },
 			options: { sort: { name: 1, age: -1, _id: -1 }, skip: 10, limit: 10 },
-		}
-		const result = findQueryBuilder({ queryString })
-		expect(result).toEqual(expected)
+		})
 	})
-
-	it("query string to mongodb find parameters with custom parameters", () => {
-		const queryString = "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10"
-		const filter = { lastName: "Bell" }
-		const project = { name: 1, lastName: 1, _id: 1, phone: 1 }
-		const option = { sort: { phone: -1, _id: 1 } }
-		const expected = {
+	it("merges explicit filters, projections, and sort options", () => {
+		const result = findQueryBuilder({
+			queryString: "name=john&age>21&fields=name,age&sort=name,-age&offset=10&limit=10",
+			filter: { lastName: "Bell" },
+			project: { name: 1, lastName: 1, _id: 1, phone: 1 },
+			option: { sort: { phone: -1, _id: 1 } },
+		})
+		assert.deepEqual(result, {
 			criteria: { name: "john", age: { $gt: 21 }, lastName: "Bell" },
 			projects: { name: 1, lastName: 1, _id: 1, phone: 1, age: 1 },
 			options: { sort: { name: 1, age: -1, phone: -1, _id: 1 }, skip: 10, limit: 10 },
-		}
-		const result = findQueryBuilder({ queryString, filter, project, option })
-		expect(result).toEqual(expected)
+		})
 	})
 })
-
-// describe("Function: pagedAggregate", () => {})
-
-// describe("Function: pagedFind", () => {})
-
-// describe("Function: q2ma", () => {})

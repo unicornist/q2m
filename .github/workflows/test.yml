@@ -1,0 +1,33 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+        mongoose: [8.24.4, 9.10.1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Test the selected Mongoose version
+        run: npm install --no-save --package-lock=false mongoose@${{ matrix.mongoose }}
+      - run: npm run format:check
+      - run: npm test
+      - name: Audit the committed dependency tree
+        if: matrix.node == 24 && matrix.mongoose == '9.10.1'
+        run: npm audit --audit-level=high

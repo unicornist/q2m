@@ -21,7 +21,7 @@
   "bugs": {
     "url": "https://github.com/unicornist/q2m/issues"
   },
-  "license": "Apache",
+  "license": "Apache-2.0",
   "author": {
     "name": "Hossein Marzban",
     "email": "marzban98@gmail.com"
@@ -38,28 +38,26 @@
     }
   ],
   "scripts": {
-    "test": "node ./datasources/dump.js & jest --coverage",
-    "test:badges": "npm run test --forceExit & npx --config jest.config.js jest-coverage-badges",
-    "pretty": "npx prettier-standard --format --lint ./**/*.js"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run pretty",
-      "pre-push": "npm run test:badges"
-    }
+    "test": "node --test --experimental-test-coverage test/*.test.js",
+    "test:unit": "node --test test/unit.test.js",
+    "format": "prettier --write \"*.js\" \"datasources/*.js\" \"test/*.js\"",
+    "format:check": "prettier --check \"*.js\" \"datasources/*.js\" \"test/*.js\"",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "faker": "^4.1.0",
-    "husky": "^4.2.5",
-    "jest": "^25.1.0",
-    "jest-coverage-badges": "^1.1.2",
-    "mongodb": "^3.5.9",
-    "mongodb-memory-server": "^6.6.1",
-    "mongoose": "^5.9.21",
-    "prettier-standard": "^16.3.0"
+    "husky": "^9.1.7",
+    "mongodb-memory-server": "^11.2.0",
+    "mongoose": "^9.10.1",
+    "prettier": "^3.9.7"
   },
   "dependencies": {
-    "bson": "^4.0.3",
+    "bson": "^4.7.2",
     "query-to-mongo": "^0.10.1"
-  }
+  },
+  "files": [
+    "index.js",
+    "q2ma.js",
+    "README.md",
+    "LICENSE"
+  ]
 }
